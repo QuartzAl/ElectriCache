@@ -15,7 +15,7 @@ import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.layout.wrapContentHeight
 import androidx.compose.foundation.text.KeyboardOptions
 import androidx.compose.material.icons.Icons
-import androidx.compose.material.icons.filled.ArrowBack
+import androidx.compose.material.icons.automirrored.filled.ArrowBack
 import androidx.compose.material.icons.filled.Check
 import androidx.compose.material3.CenterAlignedTopAppBar
 import androidx.compose.material3.ExperimentalMaterial3Api
@@ -30,19 +30,15 @@ import androidx.compose.material3.TopAppBarDefaults
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
-import androidx.compose.runtime.mutableStateOf
-import androidx.compose.runtime.saveable.rememberSaveable
-import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
-import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.input.KeyboardType
 import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
-import com.example.electricache.R
 import com.example.electricache.common.composables.DropDownMenu
 import com.example.electricache.model.MountType
+import com.example.electricache.model.PartType
 import com.example.electricache.theme.ElectriCacheTheme
 import com.example.electricache.R.string as AppText
 
@@ -53,11 +49,6 @@ class AddItemActivity : ComponentActivity() {
         setContent {
             ElectriCacheTheme {
                 val addItemViewModel by viewModels<AddItemViewModel>()
-
-                val addItemUiState by addItemViewModel.invItem.collectAsState()
-                var isExpanded by rememberSaveable {
-                    mutableStateOf(false)
-                }
                 val invItem by addItemViewModel.invItem.collectAsState()
                 // A surface container using the 'background' color from the theme
                 Surface(
@@ -91,7 +82,7 @@ class AddItemActivity : ComponentActivity() {
                                             .wrapContentHeight(Alignment.CenterVertically)
                                     ) {
                                         Icon(
-                                            imageVector = Icons.Filled.ArrowBack,
+                                            imageVector = Icons.AutoMirrored.Filled.ArrowBack,
                                             contentDescription = "Back",
                                         )
                                     }
@@ -291,7 +282,7 @@ fun PartType(
     Row {
         DropDownMenu(
             label = AppText.part_type,
-            options = partTypes,
+            options = PartType.getOptions(),
             selection = partType,
             modifier = Modifier.weight(1f),
             onNewValue = onPartTypeChange
@@ -299,7 +290,7 @@ fun PartType(
         Spacer(modifier = Modifier.width(16.dp))
         DropDownMenu(
             label = AppText.mount_type,
-            options = listOf("None", "SMD", "THT"),
+            options = MountType.getOptions(),
             selection = mountType,
             modifier = Modifier.weight(1f)
         ) {newValue ->

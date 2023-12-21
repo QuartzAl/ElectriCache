@@ -12,6 +12,7 @@ data class InventoryItem(
     val quantity: Int = 0,
     val image: String = "",
     val partType: String = "",
-    val mountType: String = ""
+    val mountType: String = "",
+    val userId: String = ""
 
 )

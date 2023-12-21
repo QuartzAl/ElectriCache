@@ -19,11 +19,8 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
-import com.example.electricache.common.Constants.ITEM_CATEGORY
-import com.example.electricache.common.Constants.ITEM_DESCRIPTION
-import com.example.electricache.common.Constants.ITEM_NAME
-import com.example.electricache.common.Constants.ITEM_QUANTITY
-import com.example.electricache.ItemDetailActivity
+import com.example.electricache.common.Constants.ITEM_ID
+import com.example.electricache.screens.item_detail.ItemDetailActivity
 import com.example.electricache.model.InventoryItem
 
 @Composable
@@ -37,10 +34,7 @@ fun ItemCard(inventoryItem: InventoryItem) {
                val intent = Intent(
                    context,
                    ItemDetailActivity::class.java)
-                intent.putExtra(ITEM_NAME, inventoryItem.name)
-                intent.putExtra(ITEM_DESCRIPTION, inventoryItem.description)
-                intent.putExtra(ITEM_QUANTITY, inventoryItem.quantity)
-                intent.putExtra(ITEM_CATEGORY, inventoryItem.partType)
+                intent.putExtra(ITEM_ID, inventoryItem.id)
                 context.startActivity(intent)
             },
         shape = RoundedCornerShape(8.dp)

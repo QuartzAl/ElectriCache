@@ -1,60 +1,59 @@
 package com.example.electricache.screens.add_item
 
 import androidx.lifecycle.ViewModel
+import androidx.lifecycle.viewModelScope
 import com.example.electricache.model.InventoryItem
+import com.example.electricache.model.service.impl.AccServiceImpl
+import com.example.electricache.model.service.impl.StorageServiceImpl
+import com.example.electricache.model.service.module.FirebaseModule
 import kotlinx.coroutines.flow.MutableStateFlow
+import kotlinx.coroutines.launch
 
 
 class AddItemViewModel: ViewModel() {
 
-    private val _InvItem = MutableStateFlow(InventoryItem())
-    val invItem = _InvItem
+    private val _intItem = MutableStateFlow(InventoryItem())
+    val invItem = _intItem
+
+    private val accountService = AccServiceImpl(FirebaseModule.auth())
+    private val storageService = StorageServiceImpl(FirebaseModule.firestore(), accountService)
 
     fun onNameChange(name: String) {
-        _InvItem.value = _InvItem.value.copy(name = name)
+        _intItem.value = _intItem.value.copy(name = name)
     }
 
     fun onDescriptionChange(description: String) {
-        _InvItem.value = _InvItem.value.copy(description = description)
+        _intItem.value = _intItem.value.copy(description = description)
     }
 
     fun onLowStockChange(lowStock: String) {
         if (lowStock.contains(".")) return // prevent user from entering a decimal point
-        _InvItem.value = if (lowStock == "")
-            _InvItem.value.copy(lowStock = 0)
+        _intItem.value = if (lowStock == "")
+            _intItem.value.copy(lowStock = 0)
         else
-            _InvItem.value.copy(lowStock = lowStock.toInt())
+            _intItem.value.copy(lowStock = lowStock.toInt())
     }
 
     fun onQuantityChange(quantity: String) {
         if (quantity.contains(".")) return // prevent user from entering a decimal point
 
-        _InvItem.value = if (quantity == "")
-            _InvItem.value.copy(quantity = 0)
+        _intItem.value = if (quantity == "")
+            _intItem.value.copy(quantity = 0)
         else
-            _InvItem.value.copy(quantity = quantity.toInt())
+            _intItem.value.copy(quantity = quantity.toInt())
     }
 
     fun onPartTypeChange(partType: String) {
-        _InvItem.value = _InvItem.value.copy(partType = partType)
+        _intItem.value = _intItem.value.copy(partType = partType)
     }
 
     fun onMountTypeChange(mountType: String) {
-        _InvItem.value = _InvItem.value.copy(mountType = mountType)
+        _intItem.value = _intItem.value.copy(mountType = mountType)
     }
 
     fun onSaveItem() {
-        // TODO: save item to database
+        viewModelScope.launch {
+            storageService.saveItem(_intItem.value)
+        }
     }
-
-
 }
-
-// make list of categories
-private val categoriesDummy = listOf(
-    "Microcontroller",
-    "Sensor",
-    "Actuator",
-    "Power Supply",
-    "Other"
-)

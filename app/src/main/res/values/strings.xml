@@ -46,4 +46,7 @@
     <string name="title_activity_item_detail">ItemDetailActivity</string>
     <string name="part_type">Part Type</string>
     <string name="mount_type">Mount Type</string>
+    <string name="try_again">Try again</string>
+    <string name="generic_error">Something happened please try again</string>
+    <string name="title_activity_main2">MainActivity2</string>
 </resources>

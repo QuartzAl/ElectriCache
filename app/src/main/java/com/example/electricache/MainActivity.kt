@@ -4,6 +4,7 @@ import android.content.Intent
 import android.os.Bundle
 import androidx.activity.ComponentActivity
 import androidx.activity.compose.setContent
+import androidx.activity.viewModels
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.padding
 import androidx.compose.material.icons.Icons
@@ -16,7 +17,6 @@ import androidx.compose.material.icons.outlined.Build
 import androidx.compose.material.icons.outlined.Home
 import androidx.compose.material.icons.outlined.Inventory2
 import androidx.compose.material.icons.outlined.Settings
-import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.FloatingActionButton
 import androidx.compose.material3.Icon
 import androidx.compose.material3.MaterialTheme
@@ -32,12 +32,13 @@ import androidx.compose.runtime.saveable.rememberSaveable
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.vector.ImageVector
+import com.example.electricache.screens.Settings
 import com.example.electricache.screens.add_item.AddItemActivity
 import com.example.electricache.screens.home.Home
+import com.example.electricache.screens.home.HomeViewModel
 import com.example.electricache.screens.inventory.Inventory
 import com.example.electricache.screens.inventory.InventoryViewModel
 import com.example.electricache.screens.projects.Projects
-import com.example.electricache.screens.Settings
 import com.example.electricache.theme.ElectriCacheTheme
 
 data class BottomBarItem(
@@ -48,16 +49,22 @@ data class BottomBarItem(
     val badgeCount: Int? = null
 )
 
+
 class MainActivity : ComponentActivity() {
-    @OptIn(ExperimentalMaterial3Api::class)
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
         setContent {
 
-            val inventoryViewModel = InventoryViewModel()
+            val inventoryViewModel by viewModels<InventoryViewModel>()
+            val homeViewModel by viewModels<HomeViewModel>()
+            homeViewModel.onStart()
+            val lowStock by homeViewModel.lowStock.collectAsState()
+            val uniqueItems by homeViewModel.uniqueItems.collectAsState()
+            val totalItems by homeViewModel.totalItems.collectAsState()
+            val threeRandomItems by homeViewModel.threeRandomItems.collectAsState()
+
             val searchQuery by inventoryViewModel.searchQuery.collectAsState()
             val itemList by inventoryViewModel.itemListFiltered.collectAsState()
-
             ElectriCacheTheme {
                 // make a list of 4 items: Home, Inventory, Projects, and Settings
                 val items = listOf(
@@ -150,7 +157,12 @@ class MainActivity : ComponentActivity() {
                             color = MaterialTheme.colorScheme.surface
                         ) {
                             when (items[selectedItemIndex].title) {
-                                "Home" -> Home()
+                                "Home" -> Home(
+                                    lowStock = lowStock,
+                                    uniqueItems = uniqueItems,
+                                    totalItems = totalItems,
+                                    randomItems = threeRandomItems
+                                )
                                 "Inventory" -> Inventory(
                                     inventoryItemList = itemList,
                                     searchQuery = searchQuery,

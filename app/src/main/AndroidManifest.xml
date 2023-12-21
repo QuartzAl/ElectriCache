@@ -13,7 +13,17 @@
         android:theme="@style/Theme.ElectriCache"
         tools:targetApi="31">
         <activity
-            android:name=".ItemDetailActivity"
+            android:name=".MainActivity2"
+            android:exported="true"
+            android:theme="@style/Theme.ElectriCache" >
+            <intent-filter>
+                <action android:name="android.intent.action.MAIN" />
+
+                <category android:name="android.intent.category.LAUNCHER" />
+            </intent-filter>
+        </activity>
+        <activity
+            android:name=".screens.item_detail.ItemDetailActivity"
             android:exported="false"
             android:label="@string/title_activity_item_detail"
             android:theme="@style/Theme.ElectriCache" />
@@ -24,13 +34,9 @@
             android:theme="@style/Theme.ElectriCache" />
         <activity
             android:name=".MainActivity"
-            android:exported="true"
+            android:exported="false"
             android:theme="@style/Theme.ElectriCache">
-            <intent-filter>
-                <action android:name="android.intent.action.MAIN" />
 
-                <category android:name="android.intent.category.LAUNCHER" />
-            </intent-filter>
         </activity>
     </application>
 
