@@ -7,7 +7,6 @@ import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
-import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.items
 import androidx.compose.foundation.shape.RoundedCornerShape
@@ -15,26 +14,26 @@ import androidx.compose.material3.Card
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.collectAsState
+import androidx.compose.runtime.getValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
-import com.example.electricache.theme.ElectriCacheTheme
+import androidx.hilt.navigation.compose.hiltViewModel
 import com.example.electricache.common.composables.CardDisplay
-import com.example.electricache.model.InventoryItem
+import com.example.electricache.theme.ElectriCacheTheme
 
 @Composable
 fun Home(
-    totalItems: String = "0",
-    lowStock: String = "0",
-    uniqueItems: String = "0",
-    randomItems: List<InventoryItem> = listOf(
-        InventoryItem(name = "Item 1", quantity = 0),
-        InventoryItem(name = "Item 2", quantity = 0),
-        InventoryItem(name = "Item 3", quantity = 0)
-
-    )
+    homeViewModel: HomeViewModel = hiltViewModel()
 ) {
+    val totalItems by homeViewModel.totalItems.collectAsState()
+    val lowStock by homeViewModel.lowStock.collectAsState()
+    val uniqueItems by homeViewModel.uniqueItems.collectAsState()
+    val randomItems by homeViewModel.randomItems.collectAsState()
+    val lowStockAmount by homeViewModel.lowStockAmount.collectAsState()
+
     Column(
         modifier = Modifier
             .fillMaxWidth()
@@ -59,19 +58,18 @@ fun Home(
             modifier = Modifier
                 .fillMaxWidth(),
         ) {
-            Spacer(modifier = Modifier.weight(1f))
-            CardDisplay(title = "Total Items", bottomText = totalItems, modifier = Modifier.width(135.dp))
-            CardDisplay(title = "Total Projects", bottomText = "0", modifier = Modifier.width(135.dp))
-            Spacer(modifier = Modifier.weight(1f))
+
+            CardDisplay(title = "Total Items", bottomText = totalItems, modifier = Modifier.weight(1f))
+            CardDisplay(title = "Total Projects", bottomText = "0", modifier = Modifier.weight(1f))
+
         }
         Row(
             modifier = Modifier
                 .fillMaxWidth(),
         ) {
-            Spacer(modifier = Modifier.weight(1f))
-            CardDisplay(title = "Low Stock", bottomText = lowStock, modifier = Modifier.width(135.dp))
-            CardDisplay(title = "Unique Items", bottomText = uniqueItems, modifier = Modifier.width(135.dp))
-            Spacer(modifier = Modifier.weight(1f))
+            CardDisplay(title = "Low Stock", bottomText = lowStockAmount, modifier = Modifier.weight(1f))
+            CardDisplay(title = "Unique Items", bottomText = uniqueItems, modifier = Modifier.weight(1f))
+
         }
 
 
@@ -97,6 +95,48 @@ fun Home(
                 }
             }
         }
+        Spacer(modifier = Modifier.height(8.dp))
+        Text(
+            text = "Low Stock Items",
+            style = MaterialTheme.typography.titleMedium,
+            modifier = Modifier.padding(vertical = 8.dp),
+            color = MaterialTheme.colorScheme.onSurfaceVariant
+        )
+        if (lowStock.isNotEmpty()) {
+            Card(
+                modifier = Modifier
+                    .fillMaxWidth(),
+                shape = RoundedCornerShape(8.dp)
+            ) {
+                LazyColumn(
+                    modifier = Modifier
+                        .fillMaxWidth()
+                        .padding(16.dp)
+                ) {
+                    items(lowStock) { item ->
+                        LowStockItemCard(
+                            item.name,
+                            item.quantity.toString(),
+                            item.lowStock.toString()
+                        )
+                    }
+                }
+            }
+        } else {
+            Row (
+                modifier = Modifier
+                    .fillMaxWidth()
+                    .padding(16.dp),
+                horizontalArrangement = Arrangement.Center
+            ){
+                Text(
+                    text = "No low stock items, yay!",
+                    style = MaterialTheme.typography.labelMedium,
+                    modifier = Modifier.padding(vertical = 8.dp),
+                    color = MaterialTheme.colorScheme.onSurfaceVariant
+                )
+            }
+        }
     }
 }
 
@@ -111,15 +151,41 @@ fun RandomItemCard(
             style = MaterialTheme.typography.labelMedium
         )
         Spacer(modifier = Modifier.weight(1f))
-        Text(text = amount, style = MaterialTheme.typography.labelMedium)
+        Text(text =  "Qty: $amount", style = MaterialTheme.typography.labelMedium)
     }
     Spacer(modifier = Modifier.height(8.dp))
+}
+
+@Composable
+fun LowStockItemCard(
+    itemName: String,
+    amount: String,
+    lowStock: String
+){
+    Row (
+        verticalAlignment = Alignment.CenterVertically
+    ) {
+        Column (){
+            Text(
+                text = itemName,
+                style = MaterialTheme.typography.titleSmall
+            )
+            Spacer(modifier = Modifier.height(4.dp))
+            Text(
+                text = "Limit: $lowStock",
+                style = MaterialTheme.typography.labelSmall
+            )
+        }
+        Spacer(modifier = Modifier.weight(1f))
+        Text(text =  "Qty: $amount", style = MaterialTheme.typography.labelMedium)
+    }
+    Spacer(modifier = Modifier.height(12.dp))
 }
 
 @Preview(showBackground = true)
 @Composable
 fun HomePreview() {
     ElectriCacheTheme {
-        Home()
+        LowStockItemCard(itemName = "item name", amount = "5", lowStock = "10")
     }
 }

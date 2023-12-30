@@ -1,6 +1,5 @@
-package com.example.electricache.common.composables
+package com.example.electricache.screens.inventory
 
-import android.content.Intent
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Row
@@ -19,23 +18,19 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
-import com.example.electricache.common.Constants.ITEM_ID
-import com.example.electricache.screens.item_detail.ItemDetailActivity
 import com.example.electricache.model.InventoryItem
 
 @Composable
-fun ItemCard(inventoryItem: InventoryItem) {
-    val context = LocalContext.current
+fun ItemCard(
+    inventoryItem: InventoryItem,
+    onClick: () -> Unit
+) {
     Card(
         modifier = Modifier
             .padding(8.dp)
             .fillMaxWidth()
             .clickable {
-               val intent = Intent(
-                   context,
-                   ItemDetailActivity::class.java)
-                intent.putExtra(ITEM_ID, inventoryItem.id)
-                context.startActivity(intent)
+               onClick()
             },
         shape = RoundedCornerShape(8.dp)
     ) {
@@ -51,7 +46,7 @@ fun ItemCard(inventoryItem: InventoryItem) {
                 )
                 Spacer(modifier = Modifier.height(4.dp))
                 Text(
-                    text = inventoryItem.description,
+                    text = inventoryItem.partType,
                     style = MaterialTheme.typography.labelSmall,
                     modifier = Modifier.width(180.dp),
                     maxLines = 2,
@@ -71,7 +66,7 @@ fun ItemCard(inventoryItem: InventoryItem) {
                 )
                 Spacer(modifier = Modifier.height(4.dp))
                 Text(
-                    text = inventoryItem.partType,
+                    text = inventoryItem.mountType,
                     style = MaterialTheme.typography.labelSmall,
                     maxLines = 1,
                 )
@@ -84,13 +79,12 @@ fun ItemCard(inventoryItem: InventoryItem) {
 @Composable
 fun ItemCardPreview() {
     ItemCard(
-        InventoryItem(
-        name = "Item Name",
-        quantity = 1,
-        description = "Description",
-        partType = "Category",
-        image = "Test",
-        id = "1"
-    )
+        inventoryItem = InventoryItem(
+            name = "Item Name",
+            description = "Item Description",
+            quantity = 1,
+            partType = "Part Type"
+        ),
+        onClick = {}
     )
 }

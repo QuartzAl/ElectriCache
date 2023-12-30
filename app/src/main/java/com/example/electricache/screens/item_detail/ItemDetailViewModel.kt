@@ -3,25 +3,29 @@ package com.example.electricache.screens.item_detail
 import android.util.Log
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
+import com.example.electricache.ADD_ITEM_SCREEN
 import com.example.electricache.model.InventoryItem
-import com.example.electricache.model.service.impl.AccServiceImpl
 import com.example.electricache.model.service.impl.StorageServiceImpl
-import com.example.electricache.model.service.module.FirebaseModule
+import dagger.hilt.android.lifecycle.HiltViewModel
 import kotlinx.coroutines.flow.MutableStateFlow
+import kotlinx.coroutines.flow.asStateFlow
 import kotlinx.coroutines.launch
+import javax.inject.Inject
 
-class ItemDetailViewModel: ViewModel() {
+@HiltViewModel
+class ItemDetailViewModel
+    @Inject constructor(
+        private val storageService: StorageServiceImpl
+    )
+    : ViewModel() {
 
     private val _invItem = MutableStateFlow(InventoryItem())
-    val invItem = _invItem
+    val invItem = _invItem.asStateFlow()
 
-    private val _closeScreen = MutableStateFlow(false)
-    val closeScreen = _closeScreen
+    private val _showDialog = MutableStateFlow(false)
+    val showDialog = _showDialog.asStateFlow()
 
-    private val accountService = AccServiceImpl(FirebaseModule.auth())
-    private val storageService = StorageServiceImpl(FirebaseModule.firestore(), accountService)
-
-    fun onStart(id: String?) {
+    fun onLoad(id: String?) {
         if (id == null) return
         Log.d("test", "onStart: $id")
         viewModelScope.launch {
@@ -29,12 +33,27 @@ class ItemDetailViewModel: ViewModel() {
         }
     }
 
-    fun onDelete(id: String?) {
-        if (id == null) return
-        viewModelScope.launch {
-            storageService.deleteItem(id)
-            _closeScreen.value = true
-        }
+    fun onBack(popUp: () -> Unit) {
+        popUp()
+    }
 
+    fun onRequestDelete() {
+        _showDialog.value = true
+    }
+
+    fun onRequestEdit(navigate: (String) -> Unit) {
+        navigate("$ADD_ITEM_SCREEN/${_invItem.value.id}")
+    }
+
+    fun onDelete(popUp: () -> Unit) {
+        viewModelScope.launch {
+            storageService.deleteItem(_invItem.value.id)
+        }
+        _showDialog.value = false
+        popUp()
+    }
+
+    fun onDismiss() {
+        _showDialog.value = false
     }
 }

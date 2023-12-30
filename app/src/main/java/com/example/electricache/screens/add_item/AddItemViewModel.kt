@@ -3,57 +3,104 @@ package com.example.electricache.screens.add_item
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import com.example.electricache.model.InventoryItem
-import com.example.electricache.model.service.impl.AccServiceImpl
+import com.example.electricache.model.MountType
+import com.example.electricache.model.PartType
 import com.example.electricache.model.service.impl.StorageServiceImpl
-import com.example.electricache.model.service.module.FirebaseModule
+import dagger.hilt.android.lifecycle.HiltViewModel
 import kotlinx.coroutines.flow.MutableStateFlow
+import kotlinx.coroutines.flow.asStateFlow
 import kotlinx.coroutines.launch
+import javax.inject.Inject
 
+@HiltViewModel
+class AddItemViewModel
+@Inject constructor(
+    private val storageService: StorageServiceImpl
+) : ViewModel() {
 
-class AddItemViewModel: ViewModel() {
+    private val _invItem = MutableStateFlow(InventoryItem())
+    val invItem = _invItem.asStateFlow()
 
-    private val _intItem = MutableStateFlow(InventoryItem())
-    val invItem = _intItem
+    private val _error = MutableStateFlow(ErrorUiState())
+    val error = _error.asStateFlow()
 
-    private val accountService = AccServiceImpl(FirebaseModule.auth())
-    private val storageService = StorageServiceImpl(FirebaseModule.firestore(), accountService)
+    fun onLoad(id: String?) {
+        if (id == null) {
+            onPartTypeChange(PartType.None.toString())
+            onMountTypeChange(MountType.None.toString())
+            return
+        }
+        viewModelScope.launch {
+            _invItem.value = storageService.getInventoryItem(id) ?: InventoryItem()
+        }
+    }
+
+    fun onBack(popUp: () -> Unit) {
+        popUp()
+    }
 
     fun onNameChange(name: String) {
-        _intItem.value = _intItem.value.copy(name = name)
+        _invItem.value = _invItem.value.copy(name = name)
     }
 
     fun onDescriptionChange(description: String) {
-        _intItem.value = _intItem.value.copy(description = description)
+        _invItem.value = _invItem.value.copy(description = description)
     }
 
     fun onLowStockChange(lowStock: String) {
-        if (lowStock.contains(".")) return // prevent user from entering a decimal point
-        _intItem.value = if (lowStock == "")
-            _intItem.value.copy(lowStock = 0)
+        if (lowStock.length > 9) return // prevent user from entering a number greater than 99999999
+        _invItem.value = if (lowStock == "")
+            _invItem.value.copy(lowStock = 0)
         else
-            _intItem.value.copy(lowStock = lowStock.toInt())
+            try {
+                _invItem.value.copy(lowStock = lowStock.toInt())
+            } catch (e: NumberFormatException) {
+                return
+            }
     }
 
     fun onQuantityChange(quantity: String) {
-        if (quantity.contains(".")) return // prevent user from entering a decimal point
+        if (quantity.length > 9) return // prevent user from entering a number greater than 99999999
 
-        _intItem.value = if (quantity == "")
-            _intItem.value.copy(quantity = 0)
+        _invItem.value = if (quantity == "")
+            _invItem.value.copy(quantity = 0)
         else
-            _intItem.value.copy(quantity = quantity.toInt())
+            try {
+                _invItem.value.copy(quantity = quantity.toInt())
+            } catch (e: NumberFormatException) {
+                return
+            }
+
+
     }
 
     fun onPartTypeChange(partType: String) {
-        _intItem.value = _intItem.value.copy(partType = partType)
+        _invItem.value = _invItem.value.copy(partType = partType)
     }
 
     fun onMountTypeChange(mountType: String) {
-        _intItem.value = _intItem.value.copy(mountType = mountType)
+        _invItem.value = _invItem.value.copy(mountType = mountType)
     }
 
-    fun onSaveItem() {
-        viewModelScope.launch {
-            storageService.saveItem(_intItem.value)
+    fun onSaveItem(popUp: () -> Unit) {
+        _error.value = ErrorUiState()   // reset error state
+        if (_invItem.value.name == "") {
+            _error.value = _error.value.copy(nameError = "Name cannot be empty")
         }
+        if (_invItem.value.quantity == 0) {
+            _error.value = _error.value.copy(quantityError = "Quantity cannot be 0")
+        }
+        if (_error.value.nameError != "" || _error.value.quantityError != "") return
+        if (_invItem.value.id == "") {
+            viewModelScope.launch {
+                storageService.saveItem(_invItem.value)
+            }
+        } else {
+            viewModelScope.launch {
+                storageService.updateItem(_invItem.value)
+            }
+        }
+
+        popUp()
     }
 }

@@ -1,7 +1,6 @@
 package com.example.electricache.screens.splash
 
 
-import android.content.Intent
 import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Column
@@ -21,7 +20,7 @@ import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
-import com.example.electricache.MainActivity
+import androidx.hilt.navigation.compose.hiltViewModel
 import com.example.electricache.common.composables.BasicButton
 import com.example.electricache.theme.ElectriCacheTheme
 import kotlinx.coroutines.delay
@@ -31,10 +30,11 @@ private const val SPLASH_TIMEOUT = 1000L
 
 @Composable
 fun SplashScreen(
-    viewModel: SplashViewModel
+    openAndPopUp: (String, String) -> Unit,
+    viewModel: SplashViewModel = hiltViewModel()
 ) {
     SplashScreenContent(
-        onAppStart = { viewModel.onAppStart() },
+        onAppStart = { viewModel.onAppStart(openAndPopUp) },
         shouldShowError = viewModel.showError.value
     )
 }
@@ -45,8 +45,6 @@ fun SplashScreenContent(
     onAppStart: () -> Unit,
     shouldShowError: Boolean
 ) {
-    val context = LocalContext.current
-
     Column(
         modifier =
         modifier
@@ -74,11 +72,6 @@ fun SplashScreenContent(
     LaunchedEffect(true) {
         delay(SPLASH_TIMEOUT)
         onAppStart()
-        val intent = Intent(
-            context,
-            MainActivity::class.java
-        )
-        context.startActivity(intent)
     }
 }
 

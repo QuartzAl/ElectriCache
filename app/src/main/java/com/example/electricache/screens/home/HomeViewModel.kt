@@ -1,67 +1,75 @@
 package com.example.electricache.screens.home
 
-import android.util.Log
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import com.example.electricache.model.InventoryItem
-import com.example.electricache.model.service.impl.AccServiceImpl
 import com.example.electricache.model.service.impl.StorageServiceImpl
-import com.example.electricache.model.service.module.FirebaseModule
+import dagger.hilt.android.lifecycle.HiltViewModel
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.SharingStarted
-import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.map
 import kotlinx.coroutines.flow.stateIn
+import javax.inject.Inject
 
-class HomeViewModel : ViewModel() {
+@HiltViewModel
+class HomeViewModel
+    @Inject constructor(
+        private val storageService: StorageServiceImpl
+    )
+    : ViewModel() {
+
     private val _totalItems = MutableStateFlow("0")
-    lateinit var totalItems: StateFlow<String>
+    var totalItems = storageService.items.map {
+        _totalItems.value = it.sumOf { item -> item.quantity }.toString()
+        _totalItems.value
+    }.stateIn(
+        scope = viewModelScope,
+        started = SharingStarted.WhileSubscribed(500),
+        initialValue = "0"
+    )
 
-    private val _lowStock = MutableStateFlow("0")
-    lateinit var lowStock: StateFlow<String>
+    private val _lowStock = MutableStateFlow(listOf(InventoryItem()))
+    var lowStock = storageService.items.map {
+        _lowStock.value = it.filter { item -> item.quantity < item.lowStock }
+        _lowStock.value
+    }.stateIn(
+        scope = viewModelScope,
+        started = SharingStarted.WhileSubscribed(500),
+        initialValue = listOf(InventoryItem())
+    )
+
+    private val _lowStockAmount = MutableStateFlow("0")
+    var lowStockAmount = storageService.items.map {
+        _lowStockAmount.value = it.filter { item -> item.quantity < item.lowStock }.size.toString()
+        _lowStockAmount.value
+    }.stateIn(
+        scope = viewModelScope,
+        started = SharingStarted.WhileSubscribed(500),
+        initialValue = "0"
+    )
 
     private val _uniqueItems = MutableStateFlow("0")
-    lateinit var uniqueItems: StateFlow<String>
+    var uniqueItems= storageService.items.map {
+        _totalItems.value = it.size.toString()
+        _totalItems.value
+    }.stateIn(
+        scope = viewModelScope,
+        started = SharingStarted.WhileSubscribed(500),
+        initialValue = "0"
+    )
 
-    private val _threeRandomItems = MutableStateFlow(emptyList<InventoryItem>())
-    lateinit var threeRandomItems: StateFlow<List<InventoryItem>>
-
-    private val accountService = AccServiceImpl(FirebaseModule.auth())
-    private val storageService = StorageServiceImpl(FirebaseModule.firestore(), accountService)
+    private val _randomItems = MutableStateFlow(emptyList<InventoryItem>())
+    var randomItems = storageService.items.map {
+        _randomItems.value = it.shuffled().take(3)
+        _randomItems.value
+    }.stateIn(
+        scope = viewModelScope,
+        started = SharingStarted.WhileSubscribed(500),
+        initialValue = emptyList()
+    )
 
     private val items = storageService.items
 
-    fun onStart() {
-        totalItems = items.map { it.sumOf { item -> item.quantity }.toString() }.stateIn(
-            scope = viewModelScope,
-            started = SharingStarted.WhileSubscribed(500),
-            initialValue = "0"
-        )
-        lowStock = items.map {
-            it.filter { item ->
-                item.lowStock >= item.quantity
-            }.count().toString()
-        }.stateIn(
-            scope = viewModelScope,
-            started = SharingStarted.WhileSubscribed(500),
-            initialValue = "0"
-        )
 
-        uniqueItems = items.map { it.size.toString() }.stateIn(
-            scope = viewModelScope,
-            started = SharingStarted.WhileSubscribed(500),
-            initialValue = "0"
-        )
-
-        threeRandomItems = items.map { it.shuffled().take(3) }.stateIn(
-            scope = viewModelScope,
-            started = SharingStarted.WhileSubscribed(500),
-            initialValue = emptyList()
-        )
-        Log.d("test", "onStart: ${threeRandomItems.value}")
-        Log.d("test", "onStart: ${uniqueItems.value}")
-        Log.d("test", "onStart: ${lowStock.value}")
-        Log.d("test", "onStart: ${totalItems.value}")
-    }
 
 }

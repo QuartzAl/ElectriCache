@@ -14,18 +14,21 @@ import androidx.compose.material3.Icon
 import androidx.compose.material3.Text
 import androidx.compose.material3.TextField
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.collectAsState
+import androidx.compose.runtime.getValue
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.unit.dp
-import com.example.electricache.model.InventoryItem
-import com.example.electricache.common.composables.ItemCard
+import androidx.hilt.navigation.compose.hiltViewModel
 
 
 @Composable
 fun Inventory(
-    inventoryItemList: List<InventoryItem>,
-    searchQuery: String,
-    onSearchQueryChange: (String) -> Unit
+    inventoryViewModel: InventoryViewModel = hiltViewModel(),
+    navigate: (String) -> Unit
 ) {
+
+    val searchQuery by inventoryViewModel.searchQuery.collectAsState()
+    val inventoryItemList by inventoryViewModel.itemListFiltered.collectAsState()
 
     Column {
         Row(
@@ -36,7 +39,7 @@ fun Inventory(
             TextField(
                 singleLine = true,
                 value = searchQuery,
-                onValueChange = onSearchQueryChange,
+                onValueChange = inventoryViewModel::onSearchQueryChange,
                 modifier = Modifier
                     .fillMaxWidth(),
                 placeholder = {
@@ -55,17 +58,9 @@ fun Inventory(
             items(inventoryItemList) { item ->
                 ItemCard(
                     inventoryItem = item,
+                    onClick = { inventoryViewModel.onItemClicked(item.id, navigate) }
                 )
             }
         }
     }
 }
-
-
-//@Preview(showBackground = true)
-//@Composable
-//fun InventoryPreview() {
-//    ElectriCacheTheme {
-//        Inventory()
-//    }
-//}
